@@ -10,18 +10,18 @@ try {
     New-Item .\temp -ItemType Directory -Force | Out-Null
     foreach ( $IP in Get-Content .\bin\IPList.txt ) {
         $IPRandom = Get-Random -Maximum 255
-        Out-File -FilePath .\temp\IP.txt -InputObject ( $IP + $IPRandom ) -Append
+        Out-File -Encoding UTF8 -FilePath .\temp\IP.txt -InputObject ( $IP + $IPRandom ) -Append
     }
     Write-Host Ping IP
-    .\bin\fping.exe -f .\temp\ip.txt -c $PingNum --interval=$PingInterval -s | Out-File .\temp\ping.csv
-    $PingResult = Import-Csv .\temp\ping.csv | Sort-Object -Property { [int]($_.loss.Replace("%", "")) } | Select-Object -First 200 | Sort-Object -Property { [double]($_.avg.Replace("ms","")) }  | Select-Object -First 100 -Property address
+    .\bin\fping.exe -f .\temp\ip.txt -c $PingNum --interval=$PingInterval -s | Out-File -Encoding UTF8 .\temp\ping.csv
+    $PingResult = Import-Csv -Encoding UTF8 .\temp\ping.csv | Sort-Object -Property { [int]($_.loss.Replace("%", "")) } | Select-Object -First 200 | Sort-Object -Property { [double]($_.avg.Replace("ms", "")) }  | Select-Object -First 100 -Property address
     Clear-Host
     Write-Host Testing IP...
     New-Item .\temp\speed -ItemType Directory -Force | Out-Null
     foreach ( $TestIP in $PingResult ) {
         $TestIPAddress = $TestIP.address
         Write-Host Testing $TestIPAddress
-        Start-Process -FilePath curl.exe -ArgumentList "--resolve apple.freecdn.workers.dev:443:$TestIPAddress https://apple.freecdn.workers.dev/105/media/us/iphone-11-pro/2019/3bd902e4-0752-4ac1-95f8-6225c32aec6d/films/product/iphone-11-pro-product-tpl-cc-us-2019_1280x720h.mp4","-o temp/speed/$TestIPAddress","-s --connect-timeout 2","--max-time $TestMaximumTime" -WindowStyle Hidden
+        Start-Process -FilePath curl.exe -ArgumentList "--resolve speed.cloudflare.com:443:$TestIPAddress https://speed.cloudflare.com/__down?bytes=1000000000", "-o temp/speed/$TestIPAddress", "-s --connect-timeout 2", "--max-time $TestMaximumTime" -WindowStyle Hidden
         Start-Sleep $TestSleep
     }
     Start-Sleep $TestMaximumTime
